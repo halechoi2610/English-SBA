@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Essential Meta Tags for Mobile & Responsive Rendering -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SBA Audio Player — The Speckled Band and Other Stories</title>
+
+  <!-- Load Inter Font for Clean Academic Readability -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Load Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Configure Tailwind to use Inter as the default sans-serif typeface
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="min-h-screen bg-stone-50 text-stone-800 font-sans antialiased selection:bg-indigo-100 selection:text-indigo-900">
+
+  <!-- Main Application Shell -->
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 pb-24">
+
+    <!-- Header Section -->
+    <header class="mb-6 sm:mb-8">
+      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold tracking-wide uppercase mb-3">
+            <!-- Headphones Icon -->
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 18v-6a9 9 0 0118 0v6" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-3a2 2 0 012-2h3zM3 19a2 2 0 002 2h1a2 2 0 002-2v-3a2 2 0 00-2-2H3z" />
+            </svg>
+            <span>SBA Speaking &amp; Shadowing Studio</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-bold text-stone-900 tracking-tight">
+            The Speckled Band and Other Stories
+          </h1>
+          <p class="mt-1 text-sm sm:text-base text-stone-500">
+            Sir Arthur Conan Doyle &middot; Retold by Anne Collins &middot; Booklet Pages 5&ndash;7 Model Answers
+          </p>
+        </div>
+
+        <!-- Global Script Export Actions -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            id="btn-copy-all"
+            type="button"
+            class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-stone-200 text-stone-700 text-xs sm:text-sm font-medium shadow-sm hover:bg-stone-50 hover:border-stone-300 active:scale-[0.99] transition"
+            title="Copy all 12 model answers as plain text"
+          >
+            <svg class="w-4 h-4 text-stone-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+            </svg>
+            <span>Copy All Scripts</span>
+          </button>
+
+          <button
+            id="btn-download-all"
+            type="button"
+            class="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white border border-stone-200 text-stone-700 text-xs sm:text-sm font-medium shadow-sm hover:bg-stone-50 hover:border-stone-300 active:scale-[0.99] transition"
+            title="Download all 12 model answers as a .txt file for MP3 converters"
+          >
+            <svg class="w-4 h-4 text-stone-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>Download .TXT</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Unsupported Speech API Fallback Warning (Hidden by default) -->
+    <div
+      id="speech-warning"
+      class="hidden mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-sm flex items-start gap-3"
+      role="alert"
+    >
+      <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+      </svg>
+      <div>
+        <p class="font-semibold">Browser Text-to-Speech Unavailable</p>
+        <p class="mt-0.5 text-amber-800">
+          Your current browser does not support the Web Speech API. You can still read every answer below or use <strong>Copy All Scripts / Download .TXT</strong> to convert the text into MP3 audio externally.
+        </p>
+      </div>
+    </div>
+
+    <!-- Sticky Top Control Bar -->
+    <section
+      aria-label="Audio Playback Controls"
+      class="sticky top-3 z-30 mb-6 bg-white/95 backdrop-blur-md border border-stone-200/90 rounded-2xl shadow-sm p-4 sm:p-5 transition-all"
+    >
+      <!-- Row 1: Transport Controls + Voice Selector -->
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <!-- Play All / Pause / Stop Buttons -->
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button
+            id="btn-play-all"
+            type="button"
+            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-sm hover:bg-indigo-700 active:scale-[0.99] transition"
+          >
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+            <span id="btn-play-all-label">Play All (12)</span>
+          </button>
+
+          <button
+            id="btn-pause-resume"
+            type="button"
+            disabled
+            class="inline-flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-stone-100 text-stone-700 text-sm font-medium hover:bg-stone-200 disabled:opacity-45 disabled:cursor-not-allowed transition"
+          >
+            <svg id="icon-pause-resume" class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
+            </svg>
+            <span id="label-pause-resume">Pause</span>
+          </button>
+
+          <button
+            id="btn-stop"
+            type="button"
+            disabled
+            class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-stone-100 text-stone-700 text-sm font-medium hover:bg-rose-50 hover:text-rose-700 disabled:opacity-45 disabled:cursor-not-allowed transition"
+          >
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6h12v12H6z" />
+            </svg>
+            <span>Stop</span>
+          </button>
+
+          <!-- Live Playback Status Pill -->
+          <div
+            id="now-playing-pill"
+            class="hidden items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-medium"
+          >
+            <span id="status-dot" class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
+            <span id="now-playing-text" class="truncate max-w-[180px] sm:max-w-[240px]">Ready</span>
+          </div>
+        </div>
+
+        <!-- Voice Selector Dropdown -->
+        <div class="flex items-center gap-2.5 w-full lg:w-auto">
+          <label for="voice-select" class="text-xs font-semibold uppercase tracking-wider text-stone-500 shrink-0">
+            Voice
+          </label>
+          <select
+            id="voice-select"
+            class="w-full lg:w-64 px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-sm text-stone-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition"
+          >
+            <option value="">Loading English voices...</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="my-3.5 border-t border-stone-100"></div>
+
+      <!-- Row 2: Speed Buttons + Toggle Switches -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- Playback Speed Selector -->
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-stone-500 mr-1">
+            Speed
+          </span>
+          <div id="speed-buttons" class="inline-flex flex-wrap items-center gap-1 p-1 rounded-xl bg-stone-100" role="group" aria-label="Playback Speed">
+            <button type="button" data-speed="0.75" class="speed-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold text-stone-600 hover:text-stone-900 transition">0.75x</button>
+            <button type="button" data-speed="0.85" class="speed-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold text-stone-600 hover:text-stone-900 transition">0.85x</button>
+            <button type="button" data-speed="1" class="speed-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-white text-indigo-700 shadow-sm transition">1.0x</button>
+            <button type="button" data-speed="1.15" class="speed-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold text-stone-600 hover:text-stone-900 transition">1.15x</button>
+            <button type="button" data-speed="1.25" class="speed-btn px-2.5 py-1.5 rounded-lg text-xs font-semibold text-stone-600 hover:text-stone-900 transition">1.25x</button>
+          </div>
+        </div>
+
+        <!-- Practice Toggles -->
+        <div class="flex flex-wrap items-center gap-5">
+          <!-- Toggle: Read Question Title Before Answer -->
+          <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+            <button
+              id="toggle-read-title"
+              type="button"
+              role="switch"
+              aria-checked="true"
+              class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-indigo-600 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+            >
+              <span class="toggle-knob inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform translate-x-6"></span>
+            </button>
+            <span class="text-xs sm:text-sm text-stone-700 font-medium">Read question title before answer</span>
+          </label>
+
+          <!-- Toggle: Loop Current Answer -->
+          <label class="inline-flex items-center gap-2.5 cursor-pointer select-none">
+            <button
+              id="toggle-loop"
+              type="button"
+              role="switch"
+              aria-checked="false"
+              class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-stone-300 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+            >
+              <span class="toggle-knob inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform translate-x-1"></span>
+            </button>
+            <span class="text-xs sm:text-sm text-stone-700 font-medium">Loop current answer</span>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Page Filter Tabs -->
+    <nav aria-label="Filter by Booklet Page" class="mb-6">
+      <div id="filter-tabs" class="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          data-filter="all"
+          class="filter-tab px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-stone-900 text-white shadow-sm transition"
+        >
+          All (12)
+        </button>
+        <button
+          type="button"
+          data-filter="5"
+          class="filter-tab px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium bg-white border border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-stone-900 transition"
+        >
+          Page 5: Detective Stories (5)
+        </button>
+        <button
+          type="button"
+          data-filter="6"
+          class="filter-tab px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium bg-white border border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-stone-900 transition"
+        >
+          Page 6: Why Read This Book (3)
+        </button>
+        <button
+          type="button"
+          data-filter="7"
+          class="filter-tab px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium bg-white border border-stone-200 text-stone-600 hover:bg-stone-100 hover:text-stone-900 transition"
+        >
+          Page 7: Moral Values (4)
+        </button>
+      </div>
+    </nav>
+
+    <!-- Subtle Practice Tip Bar -->
+    <div class="mb-5 px-4 py-3 rounded-xl bg-stone-100/80 border border-stone-200/70 text-xs sm:text-sm text-stone-600 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+      <span>
+        <strong class="text-stone-800">Tip:</strong> Click any sentence inside a card to start listening from that exact line. Use <strong>0.85x</strong> + <strong>Loop</strong> for SBA shadowing practice.
+      </span>
+      <span id="visible-count-label" class="text-xs font-medium text-stone-500 shrink-0">
+        Showing 12 of 12 answers
+      </span>
+    </div>
+
+    <!-- Question Cards Container -->
+    <main id="cards-container" class="space-y-4">
+      <!-- Cards are dynamically rendered via JavaScript -->
+    </main>
+
+    <!-- Clean Footer -->
+    <footer class="mt-12 pt-6 border-t border-stone-200 text-center text-xs text-stone-400">
+      Powered by your browser&rsquo;s built-in Web Speech API &middot; No external audio files required &middot; Press <kbd class="px-1.5 py-0.5 rounded bg-stone-200/70 text-stone-600 font-mono">Space</kbd> to Pause/Resume
+    </footer>
+  </div>
+
+  <!-- Toast Notification Container (Replaces alert()) -->
+  <div
+    id="toast"
+    role="status"
+    aria-live="polite"
+    class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 translate-y-2 transition-all duration-200 px-4 py-2.5 rounded-xl bg-stone-900 text-white text-sm font-medium shadow-lg flex items-center gap-2"
+  >
+    <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+    <span id="toast-message">Copied to clipboard</span>
+  </div>
+
+  <!-- Application Logic -->
+  <script>
+    (function () {
+      'use strict';
+
+      /**
+       * Complete verbatim dataset for all 12 SBA Model Answers (Booklet Pages 5–7).
+       * Each answer is pre-segmented into exact verbatim sentences so that:
+       *  1) Joining `sentences.join(' ')` matches the original answer character-for-character.
+       *  2) Sentence highlighting works accurately across all browsers (even where speechSynthesis
+       *     boundary events are limited), while also incorporating boundary progress when supported.
+       */
+      const SBA_DATA = [
+        // ==================== PAGE 5 ====================
+        {
+          id: 'p5-q1',
+          page: 5,
+          pageTitle: 'Page 5: Why Do We Read Detective Stories?',
+          badge: 'Page 5 · Q1',
+          question: 'Q1. Why do we read detective stories?',
+          spokenQuestion: 'Question 1. Why do we read detective stories?',
+          sentences: [
+            'In general, detective stories hook readers because they turn reading into an exciting mental puzzle.',
+            'Unlike other genres where we just follow events passively, mysteries invite us to spot clues and race against the detective to guess the ending.',
+            "Focusing specifically on 'The Speckled Band', the seemingly impossible locked-room mystery pulls us in right from the start—Julia Stoner dies in a locked bedroom with no poison or wounds.",
+            'Watching Sherlock Holmes connect tiny details like a dummy bell-rope and an air-vent gives readers a huge sense of satisfaction when the truth is finally uncovered.'
+          ]
+        },
+        {
+          id: 'p5-q2',
+          page: 5,
+          pageTitle: 'Page 5: Why Do We Read Detective Stories?',
+          badge: 'Page 5 · Q2',
+          question: 'Q2. How can reading detective stories build essential skills?',
+          spokenQuestion: 'Question 2. How can reading detective stories build essential skills?',
+          sentences: [
+            'Even though the story is fictional, the thinking habits it builds are very real.',
+            'Watching Sherlock Holmes examine clues trains us to be observant rather than overlooking small details.',
+            "In 'The Speckled Band', while everyone else thinks Julia's room looks ordinary, Holmes immediately notices that her bed is fixed to the floor and the bell-rope isn't attached to any wire.",
+            'Following how he eliminates false theories strengthens our logical reasoning skills step by step, which helps students analyse tricky problems calmly in daily life.'
+          ]
+        },
+        {
+          id: 'p5-q3',
+          page: 5,
+          pageTitle: 'Page 5: Why Do We Read Detective Stories?',
+          badge: 'Page 5 · Q3',
+          question: 'Q3. How does detective fiction encourage curiosity and critical thinking?',
+          spokenQuestion: 'Question 3. How does detective fiction encourage curiosity and critical thinking?',
+          sentences: [
+            'Detective fiction sparks our curiosity and makes critical thinking fun rather than feeling like a chore.',
+            'As I read \'The Speckled Band\', I kept wondering why Dr. Roylott kept a wild cheetah and a baboon in his garden, and what Julia meant by "the speckled band."',
+            'Because the author hides clever red herrings throughout the plot, trying to outsmart the detective pushes us to question evidence instead of jumping to conclusions, which naturally sharpens our critical thinking while keeping us entertained.'
+          ]
+        },
+        {
+          id: 'p5-q4',
+          page: 5,
+          pageTitle: 'Page 5: Why Do We Read Detective Stories?',
+          badge: 'Page 5 · Q4',
+          question: 'Q4. How can reading detective stories make English learning more enjoyable?',
+          spokenQuestion: 'Question 4. How can reading detective stories make English learning more enjoyable?',
+          sentences: [
+            "When you're desperate to find out who the killer is, you forget you are studying English.",
+            "In Anne Collins' retelling, the clear, fast-paced language shows how a suspenseful plot makes reading English feel effortless and gives us vivid expressions we can use in writing our own stories.",
+            'On top of that, following the audio version sharpens our listening through the dramatic voices, while discussing plot twists with classmates makes speaking much more natural because we genuinely want to share what we learned from the story.'
+          ]
+        },
+        {
+          id: 'p5-q5',
+          page: 5,
+          pageTitle: 'Page 5: Why Do We Read Detective Stories?',
+          badge: 'Page 5 · Q5',
+          question: 'Q5. How does fiction help students deal with real-life uncertainty and decision-making?',
+          spokenQuestion: 'Question 5. How does fiction help students deal with real-life uncertainty and decision-making?',
+          sentences: [
+            'Fiction in general—not just detective stories—throws characters into unpredictable situations, showing us how to stay calm when making tough decisions.',
+            'Watching characters face sudden danger without knowing what will happen next teaches us how to weigh our options carefully.',
+            'From my personal experience, this reminds me to pause and assess the facts instead of panicking when unexpected problems arise—for example, if a groupmate falls sick right before a school presentation or an exam question catches me off guard, I step back and handle it one step at a time.'
+          ]
+        },
+
+        // ==================== PAGE 6 ====================
+        {
+          id: 'p6-q1',
+          page: 6,
+          pageTitle: 'Page 6: Why Should We Read This Book?',
+          badge: 'Page 6 · Q1',
+          question: 'Q1. Why is this book engaging for students?',
+          spokenQuestion: 'Question 1. Why is this book engaging for students?',
+          sentences: [
+            'This book is genuinely interesting for students because the tension builds from the very first page and never slows down.',
+            "A line that immediately grabbed my attention is when Helen tells Holmes, 'It isn't the cold which makes me shiver... It's fear, Mr Holmes. It's terror.'",
+            "Hearing such raw fear right at the start—followed later by Julia's chilling last words, 'It was the band! The speckled band!'—creates a vivid, almost movie-like atmosphere that makes the book hard to put down."
+          ]
+        },
+        {
+          id: 'p6-q2',
+          page: 6,
+          pageTitle: 'Page 6: Why Should We Read This Book?',
+          badge: 'Page 6 · Q2',
+          question: 'Q2. How did the book encourage you to read more?',
+          spokenQuestion: 'Question 2. How did the book encourage you to read more?',
+          sentences: [
+            "The short chapters and cliffhanger endings kept me wanting to read 'just one more page.'",
+            'For instance, when Dr. Roylott storms into Baker Street and bends an iron poker to threaten Holmes, I had to keep reading to see how Holmes would fight back.',
+            "Because the language is accessible without losing the suspense, finishing Anne Collins' clear retelling gave me the confidence to explore more Sherlock Holmes mysteries, including the other two stories in the book—'The Dancing Men' and 'The Red-Headed League'."
+          ]
+        },
+        {
+          id: 'p6-q3',
+          page: 6,
+          pageTitle: 'Page 6: Why Should We Read This Book?',
+          badge: 'Page 6 · Q3',
+          question: 'Q3. What aspects or themes of the book are relatable to students?',
+          spokenQuestion: 'Question 3. What aspects or themes of the book are relatable to students?',
+          sentences: [
+            "Even though the story is set in the 19th century, its themes easily connect to students' real lives.",
+            "Helen's courage to seek help—along with Holmes's habit of looking beneath the surface—are lessons we can apply every day.",
+            'Just as Helen refuses to stay silent under a bullying stepfather, students sometimes need the bravery to speak up and ask for support when facing pressure.',
+            "Likewise, Holmes's refusal to trust misleading appearances reminds us to think critically about rumours and information we see online."
+          ]
+        },
+
+        // ==================== PAGE 7 ====================
+        {
+          id: 'p7-q1',
+          page: 7,
+          pageTitle: 'Page 7: What Can You Learn From This Book? (Moral Values)',
+          badge: 'Page 7 · Q1',
+          question: 'Q1. What moral value can you learn from this book?',
+          spokenQuestion: 'Question 1. What moral value can you learn from this book?',
+          sentences: [
+            'The strongest moral values I learned from this book are courage and kindness.',
+            'Instead of just offering Helen Stoner polite advice and sending her away, Sherlock Holmes and Dr. Watson show true kindness by taking her fear seriously and acting immediately to save her.',
+            'Even more impressively, Holmes and Watson demonstrate genuine bravery by staying overnight in the dark bedroom to search for the truth and protect Helen, risking their own lives for someone they had only met that morning.'
+          ]
+        },
+        {
+          id: 'p7-q2',
+          page: 7,
+          pageTitle: 'Page 7: What Can You Learn From This Book? (Moral Values)',
+          badge: 'Page 7 · Q2',
+          question: 'Q2. What does this moral value mean to you?',
+          spokenQuestion: 'Question 2. What does this moral value mean to you?',
+          sentences: [
+            "To me, true courage doesn't mean feeling no fear—it means choosing to do the right thing even when a situation is scary or uncomfortable.",
+            'Paired with that, kindness reminds me that intelligence is most meaningful when we use it to help others, rather than using our abilities only for our own advantage.'
+          ]
+        },
+        {
+          id: 'p7-q3',
+          page: 7,
+          pageTitle: 'Page 7: What Can You Learn From This Book? (Moral Values)',
+          badge: 'Page 7 · Q3',
+          question: 'Q3. Which part of the book made you think about this value?',
+          spokenQuestion: 'Question 3. Which part of the book made you think about this value?',
+          sentences: [
+            'The part that made me reflect most on this value is when Holmes and Watson wait silently in pitch darkness, risking their own safety to catch the killer.',
+            'Earlier in the story, even after Dr. Roylott threatens him, Holmes refuses to back down.',
+            "Sitting awake in Julia's old room without any light, knowing a deadly trap could strike at any second, showed me what selfless courage and responsibility really look like."
+          ]
+        },
+        {
+          id: 'p7-q4',
+          page: 7,
+          pageTitle: 'Page 7: What Can You Learn From This Book? (Moral Values)',
+          badge: 'Page 7 · Q4',
+          question: 'Q4. How did the book influence your own thinking or habits?',
+          spokenQuestion: 'Question 4. How did the book influence your own thinking or habits?',
+          sentences: [
+            'This book has influenced my habits by teaching me to stay calm and observe carefully before reacting to a problem.',
+            'Whenever I face a stressful mistake or a confusing task at school, I try to pause and look at the facts first instead of panicking.',
+            'Beyond my study habits, it also encourages me to step up and offer practical support whenever I see a friend or classmate struggling, rather than being a passive bystander.'
+          ]
+        }
+      ];
+
+      // ==================== APPLICATION STATE ====================
+      const state = {
+        speechSupported: 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined',
+        voices: [],
+        selectedVoiceURI: '',
+        rate: 1.0,
+        filter: 'all', // 'all' | '5' | '6' | '7'
+        readTitleBeforeAnswer: true,
+        loopCurrent: false,
+
+        // Playback runtime state
+        isPlaying: false,
+        isPaused: false,
+        isPlayAllMode: false,
+        activeId: null,
+        activePart: null, // 'title' | 'sentence'
+        activeSentenceIndex: -1,
+        progressPct: 0,
+        sessionToken: 0, // Incremented on every stop/restart to safely ignore stale utterance callbacks
+        betweenTimer: null,
+        toastTimer: null
+      };
+
+      // ==================== DOM REFERENCES ====================
+      const els = {
+        speechWarning: document.getElementById('speech-warning'),
+        voiceSelect: document.getElementById('voice-select'),
+        speedButtons: document.querySelectorAll('.speed-btn'),
+        btnPlayAll: document.getElementById('btn-play-all'),
+        btnPlayAllLabel: document.getElementById('btn-play-all-label'),
+        btnPauseResume: document.getElementById('btn-pause-resume'),
+        iconPauseResume: document.getElementById('icon-pause-resume'),
+        labelPauseResume: document.getElementById('label-pause-resume'),
+        btnStop: document.getElementById('btn-stop'),
+        nowPlayingPill: document.getElementById('now-playing-pill'),
+        statusDot: document.getElementById('status-dot'),
+        nowPlayingText: document.getElementById('now-playing-text'),
+        toggleReadTitle: document.getElementById('toggle-read-title'),
+        toggleLoop: document.getElementById('toggle-loop'),
+        filterTabs: document.querySelectorAll('.filter-tab'),
+        cardsContainer: document.getElementById('cards-container'),
+        visibleCountLabel: document.getElementById('visible-count-label'),
+        btnCopyAll: document.getElementById('btn-copy-all'),
+        btnDownloadAll: document.getElementById('btn-download-all'),
+        toast: document.getElementById('toast'),
+        toastMessage: document.getElementById('toast-message')
+      };
+
+      // ==================== HELPER UTILITIES ====================
+
+      /**
+       * Returns the full verbatim text of an item's model answer.
+       */
+      function getFullAnswerText(item) {
+        return item.sentences.join(' ');
+      }
+
+      /**
+       * Returns the currently filtered subset of SBA_DATA based on active page tab.
+       */
+      function getFilteredItems() {
+        if (state.filter === 'all') return SBA_DATA;
+        return SBA_DATA.filter((item) => String(item.page) === String(state.filter));
+      }
+
+      /**
+       * Estimates clear SBA speaking duration in seconds (~145 words/min baseline at 1.0x).
+       */
+      function estimateDurationSeconds(item, rate) {
+        const answerWords = getFullAnswerText(item).trim().split(/\s+/).length;
+        const titleWords = state.readTitleBeforeAnswer ? item.question.trim().split(/\s+/).length : 0;
+        const totalWords = answerWords + titleWords;
+        const baseWpm = 145;
+        const seconds = Math.round((totalWords / (baseWpm * rate)) * 60);
+        return Math.max(10, seconds);
+      }
+
+      /**
+       * Safely escapes HTML characters before inserting text into innerHTML.
+       */
+      function escapeHTML(str) {
+        return str
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      /**
+       * Displays a non-blocking toast notification at the bottom of the screen.
+       */
+      function showToast(message) {
+        if (state.toastTimer) clearTimeout(state.toastTimer);
+        els.toastMessage.textContent = message;
+        els.toast.classList.remove('opacity-0', 'translate-y-2');
+        els.toast.classList.add('opacity-100', 'translate-y-0');
+
+        state.toastTimer = setTimeout(() => {
+          els.toast.classList.remove('opacity-100', 'translate-y-0');
+          els.toast.classList.add('opacity-0', 'translate-y-2');
+        }, 2200);
+      }
+
+      /**
+       * Reliable clipboard copy using a temporary textarea + document.execCommand('copy')
+       * so it works seamlessly even inside sandboxed iframes.
+       */
+      function copyToClipboard(text, successMsg) {
+        try {
+          const textarea = document.createElement('textarea');
+          textarea.value = text;
+          textarea.setAttribute('readonly', '');
+          textarea.style.position = 'fixed';
+          textarea.style.top = '-9999px';
+          textarea.style.left = '-9999px';
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          const copied = document.execCommand('copy');
+          document.body.removeChild(textarea);
+
+          if (copied) {
+            showToast(successMsg);
+          } else {
+            showToast('Unable to copy automatically — please select and copy manually.');
+          }
+        } catch (err) {
+          console.error('Clipboard copy failed:', err);
+          showToast('Copy failed. Please try again.');
+        }
+      }
+
+      /**
+       * Builds the formatted plain-text script of all 12 model answers for copying/downloading.
+       */
+      function buildAllScriptsText() {
+        const lines = [
+          'SBA Model Answer Scripts — The Speckled Band and Other Stories',
+          'Sir Arthur Conan Doyle (Retold by Anne Collins) | Booklet Pages 5–7',
+          '====================================================================',
+          ''
+        ];
+
+        let currentPage = null;
+        SBA_DATA.forEach((item) => {
+          if (item.page !== currentPage) {
+            currentPage = item.page;
+            lines.push(`[${item.pageTitle}]`);
+            lines.push('');
+          }
+          lines.push(item.question);
+          lines.push(getFullAnswerText(item));
+          lines.push('');
+        });
+
+        return lines.join('\n').trim() + '\n';
+      }
+
+      /**
+       * Triggers a client-side .txt file download of all 12 model answers.
+       */
+      function downloadAllScripts() {
+        try {
+          const content = buildAllScriptsText();
+          const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'SBA_The_Speckled_Band_Model_Answers_Scripts.txt';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          showToast('Downloaded all 12 scripts (.txt)');
+        } catch (err) {
+          console.error('Download failed:', err);
+          showToast('Unable to download file. Try "Copy All Scripts" instead.');
+        }
+      }
+
+      // ==================== VOICE LOADING ====================
+
+      /**
+       * Scores available voices so clear en-GB or en-US voices are prioritized by default.
+       */
+      function scoreVoice(voice) {
+        let score = 0;
+        const lang = (voice.lang || '').toLowerCase();
+        const name = (voice.name || '').toLowerCase();
+
+        // Prefer British English (classic for Sherlock Holmes & HK SBA), then US English
+        if (lang === 'en-gb' || lang === 'en_gb') score += 50;
+        else if (lang === 'en-us' || lang === 'en_us') score += 45;
+        else if (lang.startsWith('en')) score += 20;
+
+        // Prioritize higher-quality system/natural voices
+        if (name.includes('google uk english')) score += 25;
+        if (name.includes('google us english')) score += 22;
+        if (name.includes('natural') || name.includes('neural') || name.includes('enhanced') || name.includes('premium')) score += 20;
+        if (name.includes('daniel') || name.includes('serena') || name.includes('martha') || name.includes('samantha') || name.includes('libby') || name.includes('sonia') || name.includes('ryan')) score += 15;
+        if (voice.localService) score += 5;
+
+        return score;
+      }
+
+      /**
+       * Populates the voice dropdown cleanly, handling asynchronous onvoiceschanged loading.
+       */
+      function loadVoices() {
+        if (!state.speechSupported) return;
+
+        try {
+          const allVoices = window.speechSynthesis.getVoices() || [];
+          if (allVoices.length === 0) return;
+
+          // Filter English voices first; fallback to all voices if none match
+          let englishVoices = allVoices.filter((v) => (v.lang || '').toLowerCase().startsWith('en'));
+          if (englishVoices.length === 0) {
+            englishVoices = allVoices;
+          }
+
+          // Sort best voices to the top for convenience
+          englishVoices.sort((a, b) => scoreVoice(b) - scoreVoice(a));
+          state.voices = englishVoices;
+
+          const previouslySelected = state.selectedVoiceURI;
+          els.voiceSelect.innerHTML = '';
+
+          englishVoices.forEach((voice) => {
+            const opt = document.createElement('option');
+            opt.value = voice.voiceURI;
+            const cleanLang = voice.lang || 'en';
+            opt.textContent = `${voice.name} (${cleanLang})`;
+            els.voiceSelect.appendChild(opt);
+          });
+
+          // Retain previous selection if still available, else choose top-scored default
+          const stillExists = englishVoices.some((v) => v.voiceURI === previouslySelected);
+          if (stillExists) {
+            state.selectedVoiceURI = previouslySelected;
+          } else {
+            state.selectedVoiceURI = englishVoices[0].voiceURI;
+          }
+          els.voiceSelect.value = state.selectedVoiceURI;
+        } catch (err) {
+          console.error('Error loading speech voices:', err);
+        }
+      }
+
+      /**
+       * Returns the currently selected SpeechSynthesisVoice object.
+       */
+      function getSelectedVoice() {
+        return state.voices.find((v) => v.voiceURI === state.selectedVoiceURI) || null;
+      }
+
+      // ==================== SPEECH SYNTHESIS ENGINE ====================
+
+      /**
+       * Clears any pending inter-question/loop timer.
+       */
+      function clearBetweenTimer() {
+        if (state.betweenTimer) {
+          clearTimeout(state.betweenTimer);
+          state.betweenTimer = null;
+        }
+      }
+
+      /**
+       * Fully stops all speech playback and resets active UI states.
+       */
+      function stopPlayback() {
+        state.sessionToken += 1;
+        clearBetweenTimer();
+
+        if (state.speechSupported) {
+          try {
+            window.speechSynthesis.cancel();
+          } catch (err) {
+            console.error('Error cancelling speech:', err);
+          }
+        }
+
+        state.isPlaying = false;
+        state.isPaused = false;
+        state.isPlayAllMode = false;
+        state.activeId = null;
+        state.activePart = null;
+        state.activeSentenceIndex = -1;
+        state.progressPct = 0;
+
+        syncPlaybackUI();
+      }
+
+      /**
+       * Pauses or resumes active speech playback.
+       */
+      function togglePauseResume() {
+        if (!state.speechSupported || !state.activeId) return;
+
+        try {
+          if (state.isPaused) {
+            state.isPaused = false;
+            state.isPlaying = true;
+
+            if (window.speechSynthesis.paused) {
+              window.speechSynthesis.resume();
+            } else {
+              // Safe fallback for browsers where pause() cancels or drops queue
+              const startIdx = Math.max(0, state.activeSentenceIndex);
+              playItemFrom(state.activeId, startIdx, state.isPlayAllMode, state.activePart === 'title');
+              return;
+            }
+          } else if (state.isPlaying) {
+            clearBetweenTimer();
+            window.speechSynthesis.pause();
+            state.isPaused = true;
+            state.isPlaying = false;
+          }
+          syncPlaybackUI();
+        } catch (err) {
+          console.error('Pause/Resume error:', err);
+          stopPlayback();
+        }
+      }
+
+      /**
+       * Starts playing a specific question card (optionally from a specific sentence index).
+       */
+      function playItemFrom(itemId, sentenceIndex = 0, playAllMode = false, includeTitle = null) {
+        if (!state.speechSupported) {
+          showToast('Speech synthesis is not supported in this browser.');
+          return;
+        }
+
+        const item = SBA_DATA.find((x) => x.id === itemId);
+        if (!item) return;
+
+        // Increment session token & cancel any running speech
+        state.sessionToken += 1;
+        const token = state.sessionToken;
+        clearBetweenTimer();
+
+        try {
+          window.speechSynthesis.cancel();
+        } catch (err) {
+          console.error('Cancel error before play:', err);
+        }
+
+        state.isPlaying = true;
+        state.isPaused = false;
+        state.isPlayAllMode = playAllMode;
+        state.activeId = itemId;
+        state.progressPct = 0;
+
+        // Scroll active card gently into view if needed
+        const cardEl = document.querySelector(`[data-card-id="${itemId}"]`);
+        if (cardEl) {
+          cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        const shouldReadTitle =
+          includeTitle !== null
+            ? includeTitle
+            : sentenceIndex === 0 && state.readTitleBeforeAnswer;
+
+        if (shouldReadTitle) {
+          speakTitleThenSentences(item, sentenceIndex, token);
+        } else {
+          speakSentenceAt(item, sentenceIndex, token);
+        }
+      }
+
+      /**
+       * Speaks the question title first, then proceeds smoothly into the model answer sentences.
+       */
+      function speakTitleThenSentences(item, startSentenceIdx, token) {
+        if (token !== state.sessionToken) return;
+
+        state.activePart = 'title';
+        state.activeSentenceIndex = -1;
+        state.progressPct = 4;
+        syncPlaybackUI();
+
+        try {
+          const utter = new SpeechSynthesisUtterance(item.spokenQuestion);
+          const voice = getSelectedVoice();
+          if (voice) utter.voice = voice;
+          utter.lang = voice ? voice.lang : 'en-GB';
+          utter.rate = state.rate;
+          utter.pitch = 1.0;
+
+          utter.onend = () => {
+            if (token !== state.sessionToken) return;
+            // Brief natural breath between question title and answer
+            state.betweenTimer = setTimeout(() => {
+              if (token !== state.sessionToken) return;
+              speakSentenceAt(item, startSentenceIdx, token);
+            }, 420);
+          };
+
+          utter.onerror = (event) => {
+            if (token !== state.sessionToken) return;
+            if (event.error === 'interrupted' || event.error === 'canceled') return;
+            console.error('Speech title error:', event.error);
+            showToast('Audio playback encountered an error.');
+            stopPlayback();
+          };
+
+          window.speechSynthesis.speak(utter);
+        } catch (err) {
+          console.error('Speech synthesis failed on title:', err);
+          stopPlayback();
+        }
+      }
+
+      /**
+       * Speaks a single sentence of the active model answer, updating sentence highlights and
+       * fine-grained progress via speechSynthesis boundary events where supported.
+       */
+      function speakSentenceAt(item, sentenceIdx, token) {
+        if (token !== state.sessionToken) return;
+
+        if (sentenceIdx >= item.sentences.length) {
+          handleItemFinished(item, token);
+          return;
+        }
+
+        state.activePart = 'sentence';
+        state.activeSentenceIndex = sentenceIdx;
+
+        // Calculate baseline progress percentage for the start of this sentence
+        const totalChars = item.sentences.reduce((sum, s) => sum + s.length, 0);
+        const charsBefore = item.sentences
+          .slice(0, sentenceIdx)
+          .reduce((sum, s) => sum + s.length, 0);
+        state.progressPct = Math.min(98, Math.round((charsBefore / Math.max(1, totalChars)) * 100));
+        syncPlaybackUI();
+
+        try {
+          const sentenceText = item.sentences[sentenceIdx];
+          const utter = new SpeechSynthesisUtterance(sentenceText);
+          const voice = getSelectedVoice();
+          if (voice) utter.voice = voice;
+          utter.lang = voice ? voice.lang : 'en-GB';
+          utter.rate = state.rate;
+          utter.pitch = 1.0;
+
+          // Smooth live progress updates when browser supports boundary events
+          utter.onboundary = (event) => {
+            if (token !== state.sessionToken) return;
+            if (typeof event.charIndex === 'number') {
+              const currentChars = charsBefore + event.charIndex;
+              state.progressPct = Math.min(99, Math.round((currentChars / Math.max(1, totalChars)) * 100));
+              updateActiveProgressBar();
+            }
+          };
+
+          utter.onend = () => {
+            if (token !== state.sessionToken) return;
+            speakSentenceAt(item, sentenceIdx + 1, token);
+          };
+
+          utter.onerror = (event) => {
+            if (token !== state.sessionToken) return;
+            if (event.error === 'interrupted' || event.error === 'canceled') return;
+            console.error('Speech sentence error:', event.error);
+            showToast('Audio playback encountered an error.');
+            stopPlayback();
+          };
+
+          window.speechSynthesis.speak(utter);
+        } catch (err) {
+          console.error('Speech synthesis failed on sentence:', err);
+          stopPlayback();
+        }
+      }
+
+      /**
+       * Handles what happens once all sentences of an item finish playing:
+       *  - If "Loop current answer" is enabled, replays the same item after a brief pause.
+       *  - Else if in "Play All" mode, moves to the next visible item after a brief pause.
+       *  - Otherwise finishes cleanly.
+       */
+      function handleItemFinished(item, token) {
+        if (token !== state.sessionToken) return;
+
+        state.progressPct = 100;
+        updateActiveProgressBar();
+
+        if (state.loopCurrent) {
+          state.betweenTimer = setTimeout(() => {
+            if (token !== state.sessionToken) return;
+            playItemFrom(item.id, 0, state.isPlayAllMode);
+          }, 1100);
+          return;
+        }
+
+        if (state.isPlayAllMode) {
+          const list = getFilteredItems();
+          const idx = list.findIndex((x) => x.id === item.id);
+          if (idx !== -1 && idx + 1 < list.length) {
+            const nextItem = list[idx + 1];
+            state.betweenTimer = setTimeout(() => {
+              if (token !== state.sessionToken) return;
+              playItemFrom(nextItem.id, 0, true);
+            }, 1250);
+            return;
+          }
+        }
+
+        // All done!
+        stopPlayback();
+      }
+
+      /**
+       * Starts sequential playback of all currently visible cards.
+       */
+      function startPlayAll() {
+        const list = getFilteredItems();
+        if (list.length === 0) return;
+        playItemFrom(list[0].id, 0, true);
+      }
+
+      // ==================== UI RENDERING & SYNC ====================
+
+      /**
+       * Renders all visible question cards based on the current page filter.
+       */
+      function renderCards() {
+        const items = getFilteredItems();
+        els.visibleCountLabel.textContent = `Showing ${items.length} of ${SBA_DATA.length} answers`;
+        els.btnPlayAllLabel.textContent =
+          state.filter === 'all' ? `Play All (${items.length})` : `Play Page ${state.filter} (${items.length})`;
+
+        let html = '';
+        let lastPage = null;
+
+        items.forEach((item) => {
+          // Insert clean section divider when showing "All" across multiple pages
+          if (state.filter === 'all' && item.page !== lastPage) {
+            lastPage = item.page;
+            html += `
+              <div class="pt-4 first:pt-0 pb-1 flex items-center gap-3">
+                <h2 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-stone-500">
+                  ${escapeHTML(item.pageTitle)}
+                </h2>
+                <div class="flex-1 h-px bg-stone-200/80"></div>
+              </div>
+            `;
+          }
+
+          const durationSec = estimateDurationSeconds(item, state.rate);
+          const sentencesHtml = item.sentences
+            .map(
+              (sentence, idx) =>
+                `<span data-sentence-idx="${idx}" class="sentence-span cursor-pointer rounded-md px-0.5 py-0.5 transition-colors duration-200 hover:bg-stone-100">${escapeHTML(sentence)}</span>`
+            )
+            .join(' ');
+
+          // Subtle badge accent per page
+          let badgeClass = 'bg-indigo-50 text-indigo-700 border-indigo-100';
+          if (item.page === 6) badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-100';
+          if (item.page === 7) badgeClass = 'bg-amber-50 text-amber-800 border-amber-200/70';
+
+          html += `
+            <article
+              data-card-id="${item.id}"
+              class="question-card group relative overflow-hidden bg-white rounded-2xl border border-stone-200/90 shadow-sm p-5 sm:p-6 transition-all duration-200 hover:border-stone-300"
+            >
+              <!-- Subtle Top Progress Bar (Visible when active) -->
+              <div class="card-progress-track absolute top-0 left-0 right-0 h-1 bg-indigo-100 opacity-0 transition-opacity duration-200">
+                <div class="card-progress-fill h-full bg-indigo-600 transition-all duration-200" style="width: 0%"></div>
+              </div>
+
+              <!-- Card Header: Badges, Duration & Action Buttons -->
+              <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3.5 mb-3.5">
+                <div class="space-y-2 flex-1">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg border text-xs font-semibold ${badgeClass}">
+                      ${escapeHTML(item.badge)}
+                    </span>
+                    <span class="duration-badge inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-stone-100 text-stone-500 text-xs font-medium" data-item-id="${item.id}">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"></path>
+                      </svg>
+                      ~${durationSec}s
+                    </span>
+                  </div>
+
+                  <h3 class="card-question-title text-base sm:text-lg font-semibold text-stone-900 leading-snug rounded-lg px-1 -mx-1 py-0.5 transition-colors duration-200">
+                    ${escapeHTML(item.question)}
+                  </h3>
+                </div>
+
+                <!-- Per-Card Controls -->
+                <div class="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    data-action="play-card"
+                    data-item-id="${item.id}"
+                    class="card-play-btn inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold shadow-sm hover:bg-indigo-700 active:scale-[0.98] transition"
+                    aria-label="Play ${escapeHTML(item.question)}"
+                  >
+                    <svg class="card-play-icon w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                    <span class="card-play-label">Play</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    data-action="copy-card"
+                    data-item-id="${item.id}"
+                    class="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-stone-100 text-stone-600 text-xs sm:text-sm font-medium hover:bg-stone-200 hover:text-stone-900 active:scale-[0.98] transition"
+                    title="Copy question and model answer"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+                    </svg>
+                    <span>Copy Text</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Verbatim Model Answer Body -->
+              <p class="text-[15px] sm:text-base leading-relaxed text-stone-700">
+                ${sentencesHtml}
+              </p>
+            </article>
+          `;
+        });
+
+        els.cardsContainer.innerHTML = html;
+        syncPlaybackUI();
+      }
+
+      /**
+       * Updates only the active card's progress bar width for zero-jank boundary events.
+       */
+      function updateActiveProgressBar() {
+        if (!state.activeId) return;
+        const activeCard = document.querySelector(`[data-card-id="${state.activeId}"]`);
+        if (!activeCard) return;
+        const fill = activeCard.querySelector('.card-progress-fill');
+        if (fill) {
+          fill.style.width = `${state.progressPct}%`;
+        }
+      }
+
+      /**
+       * Updates estimated duration badges when speed or "read title" toggle changes.
+       */
+      function updateDurationBadges() {
+        document.querySelectorAll('.duration-badge').forEach((badge) => {
+          const item = SBA_DATA.find((x) => x.id === badge.dataset.itemId);
+          if (!item) return;
+          const secs = estimateDurationSeconds(item, state.rate);
+          badge.innerHTML = `
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"></path>
+            </svg>
+            ~${secs}s
+          `;
+        });
+      }
+
+      /**
+       * Synchronizes top controls, active card styling, Play/Pause buttons, and sentence highlights.
+       */
+      function syncPlaybackUI() {
+        const hasActive = Boolean(state.activeId);
+
+        // Top Pause/Resume & Stop buttons
+        els.btnPauseResume.disabled = !hasActive;
+        els.btnStop.disabled = !hasActive;
+
+        if (state.isPaused) {
+          els.labelPauseResume.textContent = 'Resume';
+          els.iconPauseResume.innerHTML = '<path d="M8 5v14l11-7z" />';
+        } else {
+          els.labelPauseResume.textContent = 'Pause';
+          els.iconPauseResume.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />';
+        }
+
+        // Now-playing pill
+        if (hasActive) {
+          const activeItem = SBA_DATA.find((x) => x.id === state.activeId);
+          els.nowPlayingPill.classList.remove('hidden');
+          els.nowPlayingPill.classList.add('inline-flex');
+          const prefix = state.isPaused ? 'Paused' : state.loopCurrent ? 'Looping' : 'Playing';
+          els.nowPlayingText.textContent = `${prefix}: ${activeItem ? activeItem.badge : ''}`;
+          els.statusDot.classList.toggle('animate-pulse', !state.isPaused);
+          els.statusDot.classList.toggle('bg-indigo-600', !state.isPaused);
+          els.statusDot.classList.toggle('bg-amber-500', state.isPaused);
+        } else {
+          els.nowPlayingPill.classList.add('hidden');
+          els.nowPlayingPill.classList.remove('inline-flex');
+        }
+
+        // Sync every visible card
+        document.querySelectorAll('.question-card').forEach((card) => {
+          const cardId = card.dataset.cardId;
+          const isThisCardActive = cardId === state.activeId;
+          const playBtn = card.querySelector('.card-play-btn');
+          const playIcon = card.querySelector('.card-play-icon');
+          const playLabel = card.querySelector('.card-play-label');
+          const progressTrack = card.querySelector('.card-progress-track');
+          const progressFill = card.querySelector('.card-progress-fill');
+          const titleEl = card.querySelector('.card-question-title');
+
+          // Active card border & subtle background tint
+          if (isThisCardActive) {
+            card.classList.add('ring-2', 'ring-indigo-500/40', 'border-indigo-300', 'bg-indigo-50/20');
+            card.classList.remove('border-stone-200/90', 'bg-white');
+            progressTrack.classList.remove('opacity-0');
+            progressFill.style.width = `${state.progressPct}%`;
+          } else {
+            card.classList.remove('ring-2', 'ring-indigo-500/40', 'border-indigo-300', 'bg-indigo-50/20');
+            card.classList.add('border-stone-200/90', 'bg-white');
+            progressTrack.classList.add('opacity-0');
+            progressFill.style.width = '0%';
+          }
+
+          // Card Play / Pause button appearance
+          if (isThisCardActive && state.isPlaying) {
+            playBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+            playBtn.classList.add('bg-stone-900', 'hover:bg-stone-800');
+            playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />';
+            playLabel.textContent = 'Pause';
+          } else if (isThisCardActive && state.isPaused) {
+            playBtn.classList.remove('bg-stone-900', 'hover:bg-stone-800');
+            playBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+            playIcon.innerHTML = '<path d="M8 5v14l11-7z" />';
+            playLabel.textContent = 'Resume';
+          } else {
+            playBtn.classList.remove('bg-stone-900', 'hover:bg-stone-800');
+            playBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+            playIcon.innerHTML = '<path d="M8 5v14l11-7z" />';
+            playLabel.textContent = 'Play';
+          }
+
+          // Highlight title if currently being read
+          if (isThisCardActive && state.activePart === 'title') {
+            titleEl.classList.add('bg-indigo-100/80', 'text-indigo-950');
+          } else {
+            titleEl.classList.remove('bg-indigo-100/80', 'text-indigo-950');
+          }
+
+          // Highlight currently spoken sentence
+          card.querySelectorAll('.sentence-span').forEach((span) => {
+            const idx = Number(span.dataset.sentenceIdx);
+            const isActiveSentence =
+              isThisCardActive && state.activePart === 'sentence' && idx === state.activeSentenceIndex;
+
+            if (isActiveSentence) {
+              span.classList.add('bg-indigo-100', 'text-indigo-950', 'font-medium');
+              span.classList.remove('hover:bg-stone-100');
+            } else {
+              span.classList.remove('bg-indigo-100', 'text-indigo-950', 'font-medium');
+              span.classList.add('hover:bg-stone-100');
+            }
+          });
+        });
+      }
+
+      /**
+       * Helper to visually update a custom accessible toggle switch.
+       */
+      function updateSwitchUI(buttonEl, isChecked) {
+        buttonEl.setAttribute('aria-checked', String(isChecked));
+        const knob = buttonEl.querySelector('.toggle-knob');
+        if (isChecked) {
+          buttonEl.classList.remove('bg-stone-300');
+          buttonEl.classList.add('bg-indigo-600');
+          knob.classList.remove('translate-x-1');
+          knob.classList.add('translate-x-6');
+        } else {
+          buttonEl.classList.remove('bg-indigo-600');
+          buttonEl.classList.add('bg-stone-300');
+          knob.classList.remove('translate-x-6');
+          knob.classList.add('translate-x-1');
+        }
+      }
+
+      // ==================== EVENT BINDINGS ====================
+
+      function bindEvents() {
+        // Voice dropdown change
+        els.voiceSelect.addEventListener('change', (e) => {
+          state.selectedVoiceURI = e.target.value;
+          // If actively playing, immediately apply the new voice from the current sentence
+          if (state.isPlaying && state.activeId) {
+            const idx = Math.max(0, state.activeSentenceIndex);
+            playItemFrom(state.activeId, idx, state.isPlayAllMode, state.activePart === 'title');
+          }
+        });
+
+        // Speed button clicks
+        els.speedButtons.forEach((btn) => {
+          btn.addEventListener('click', () => {
+            const newRate = parseFloat(btn.dataset.speed);
+            state.rate = newRate;
+
+            els.speedButtons.forEach((b) => {
+              const active = parseFloat(b.dataset.speed) === newRate;
+              b.classList.toggle('bg-white', active);
+              b.classList.toggle('text-indigo-700', active);
+              b.classList.toggle('shadow-sm', active);
+              b.classList.toggle('text-stone-600', !active);
+            });
+
+            updateDurationBadges();
+
+            // Restart current sentence smoothly at the new speed if playing
+            if (state.isPlaying && state.activeId) {
+              const idx = Math.max(0, state.activeSentenceIndex);
+              playItemFrom(state.activeId, idx, state.isPlayAllMode, state.activePart === 'title');
+            }
+          });
+        });
+
+        // Global Transport Controls
+        els.btnPlayAll.addEventListener('click', startPlayAll);
+        els.btnPauseResume.addEventListener('click', togglePauseResume);
+        els.btnStop.addEventListener('click', stopPlayback);
+
+        // Toggle: Read Question Title Before Answer
+        els.toggleReadTitle.addEventListener('click', () => {
+          state.readTitleBeforeAnswer = !state.readTitleBeforeAnswer;
+          updateSwitchUI(els.toggleReadTitle, state.readTitleBeforeAnswer);
+          updateDurationBadges();
+        });
+
+        // Toggle: Loop Current Answer
+        els.toggleLoop.addEventListener('click', () => {
+          state.loopCurrent = !state.loopCurrent;
+          updateSwitchUI(els.toggleLoop, state.loopCurrent);
+          syncPlaybackUI();
+          showToast(state.loopCurrent ? 'Loop mode enabled for shadowing' : 'Loop mode turned off');
+        });
+
+        // Page Filter Tabs
+        els.filterTabs.forEach((tab) => {
+          tab.addEventListener('click', () => {
+            const nextFilter = tab.dataset.filter;
+            if (nextFilter === state.filter) return;
+
+            state.filter = nextFilter;
+
+            // Update active tab styling
+            els.filterTabs.forEach((t) => {
+              const isSelected = t.dataset.filter === nextFilter;
+              t.classList.toggle('bg-stone-900', isSelected);
+              t.classList.toggle('text-white', isSelected);
+              t.classList.toggle('shadow-sm', isSelected);
+              t.classList.toggle('font-semibold', isSelected);
+
+              t.classList.toggle('bg-white', !isSelected);
+              t.classList.toggle('border', !isSelected);
+              t.classList.toggle('border-stone-200', !isSelected);
+              t.classList.toggle('text-stone-600', !isSelected);
+              t.classList.toggle('font-medium', !isSelected);
+            });
+
+            renderCards();
+          });
+        });
+
+        // Copy All / Download All Script Buttons
+        els.btnCopyAll.addEventListener('click', () => {
+          copyToClipboard(buildAllScriptsText(), 'Copied all 12 model answer scripts!');
+        });
+
+        els.btnDownloadAll.addEventListener('click', downloadAllScripts);
+
+        // Delegated Click Events inside Cards Container (Play/Pause, Copy Text, Click Sentence)
+        els.cardsContainer.addEventListener('click', (e) => {
+          // 1. Check Play/Pause Card button
+          const playBtn = e.target.closest('[data-action="play-card"]');
+          if (playBtn) {
+            const itemId = playBtn.dataset.itemId;
+            if (state.activeId === itemId && (state.isPlaying || state.isPaused)) {
+              togglePauseResume();
+            } else {
+              playItemFrom(itemId, 0, false);
+            }
+            return;
+          }
+
+          // 2. Check Copy Text button
+          const copyBtn = e.target.closest('[data-action="copy-card"]');
+          if (copyBtn) {
+            const item = SBA_DATA.find((x) => x.id === copyBtn.dataset.itemId);
+            if (item) {
+              const formatted = `${item.question}\n${getFullAnswerText(item)}`;
+              copyToClipboard(formatted, `Copied ${item.badge} text!`);
+            }
+            return;
+          }
+
+          // 3. Check Sentence click-to-jump
+          const sentenceSpan = e.target.closest('.sentence-span');
+          if (sentenceSpan) {
+            const card = sentenceSpan.closest('.question-card');
+            if (!card) return;
+            const itemId = card.dataset.cardId;
+            const sentenceIdx = Number(sentenceSpan.dataset.sentenceIdx);
+            playItemFrom(itemId, sentenceIdx, false, false);
+          }
+        });
+
+        // Convenient Keyboard Shortcuts (Space = Pause/Resume, Escape = Stop)
+        document.addEventListener('keydown', (e) => {
+          const tag = (e.target.tagName || '').toLowerCase();
+          if (tag === 'select' || tag === 'input' || tag === 'textarea' || tag === 'button') return;
+
+          if (e.code === 'Space' && state.activeId) {
+            e.preventDefault();
+            togglePauseResume();
+          } else if (e.code === 'Escape' && state.activeId) {
+            stopPlayback();
+          }
+        });
+
+        // Clean up active speech if the user closes or refreshes the page
+        window.addEventListener('beforeunload', () => {
+          if (state.speechSupported) {
+            try {
+              window.speechSynthesis.cancel();
+            } catch (_) {
+              // Ignore unload cleanup errors
+            }
+          }
+        });
+      }
+
+      // ==================== INITIALIZATION ====================
+
+      function init() {
+        if (!state.speechSupported) {
+          els.speechWarning.classList.remove('hidden');
+          els.voiceSelect.innerHTML = '<option value="">Speech unavailable</option>';
+          els.voiceSelect.disabled = true;
+          els.btnPlayAll.disabled = true;
+        } else {
+          loadVoices();
+          // Listen for asynchronously loaded voices (Chrome/Edge/Safari)
+          if (typeof window.speechSynthesis.onvoiceschanged !== 'undefined') {
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+          }
+          // Secondary fallback check for slower voice initialization
+          setTimeout(loadVoices, 400);
+        }
+
+        renderCards();
+        bindEvents();
+      }
+
+      // Start application once DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
+</body>
+</html>
